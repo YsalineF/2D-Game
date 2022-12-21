@@ -161,15 +161,27 @@ window.addEventListener('load', function(){
             this.game = game;
             this.fontSize = 25;
             this.fontFamily = 'Helvetica';
-            this.color = 'yellow';
+            this.color = 'white';
         }
         draw(context){
-            //ammo => we can see the ammo recharging on the canvas and it will recharge until it hits maxAmmo
+            // context.save() and context.restore() means the shadow only affect the elements between the save and the store (so not the player, the enemies, ...)
+            context.save();
             context.fillStyle = this.color;
+            context.shadowOffsetX = 2;
+            context.shadowOffsetY = 2;
+            context.shadowColor = 'black';
+            context.font = this.fontSize + 'px' + this.fontFamily;
+            
+            // score
+            context.fillText('Score : ' + this.game.score, 20, 40);
+            
+            //ammo 
+                // => we can see the ammo recharging on the canvas and it will recharge until it hits maxAmmo
             for(let i = 0; i < this.game.ammo; i++){
                 //x = 5 (+ 20px left margin), y = 50, width = 3, height = 20
                 context.fillRect(20 + 5 * i, 50, 3, 20);
             }
+            context.restore();
         }
     }
     // Handle the entire game
@@ -190,6 +202,8 @@ window.addEventListener('load', function(){
             this.ammoTimer = 0;
             this.ammoInterval = 500;
             this.gameOver = false;
+            this.score = 0;
+            this.winningScore = 10;
         }
         update(deltaTime){
             this.player.update();
@@ -211,6 +225,7 @@ window.addEventListener('load', function(){
                         if(enemy.lives <= 0) {
                             enemy.markedForDeletion = true;
                             this.score += enemy.score;
+                            if(this.score > this.winningScore) this.gameOver = true;
                         }
                     }
                 })
