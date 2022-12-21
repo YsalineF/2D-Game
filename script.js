@@ -137,9 +137,18 @@ window.addEventListener('load', function(){
             this.input = new InputHandler(this);
             this.keys = [];
             this.ammo = 20;
+            this.maxAmmo = 50;
+            this.ammoTimer = 0;
+            this.ammoInterval = 500;
         }
-        update(){
+        update(deltaTime){
             this.player.update();
+            if(this.ammoTimer > this.ammoInterval) {
+                if(this.ammo < this.maxAmmo) this.ammo++;
+                this.ammoTimer = 0;
+            } else {
+                this.ammoTimer += deltaTime;
+            }
         }
         draw(context){
             // Render the player on the canvas by calling the draw method from line 40
@@ -148,13 +157,20 @@ window.addEventListener('load', function(){
     }
 
     const game = new Game(canvas.width, canvas.height);
-
+    let lastTime = 0;
     // Animation loop
-    function animate(){
+    function animate(timeStamp){
+        // deltaTime is the difference in milliseconds between the timestamp from this loop and the timestamp from the previous loop
+        const deltaTime = timeStamp - lastTime;
+        // So that it can be used to calculate deltaTime in the next loop
+        lastTime = timeStamp;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        game.update();
+        game.update(deltaTime);
         game.draw(ctx);
+        // "requestAnimationFrame" has a special feature : it automatically passes a timestamp as an argument at the 
+        // function it calls (here it's : "animate")
         requestAnimationFrame(animate);
     }   
-    animate();
+    // We pass 0 as the first timestamp here
+    animate(0);
 });
