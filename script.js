@@ -18,8 +18,9 @@ window.addEventListener('load', function(){
                     (e.key === "ArrowDown")
                 ) && this.game.keys.indexOf(e.key) === -1){
                     this.game.keys.push(e.key);
+                } else if (e.key === " ") {
+                    this.game.player.shootTop();
                 }
-                console.log(this.game.keys);
             });
             // When we release the key
             window.addEventListener('keyup', e => {
@@ -32,13 +33,30 @@ window.addEventListener('load', function(){
                     // starting index)
                     this.game.keys.splice(this.game.keys.indexOf(e.key), 1);
                 }
-                console.log(this.game.keys);
-            })
+            });
         }
     }
     // Handle player's lasers
     class Projectile {
-
+        constructor(game, x, y){
+            this.game = game;
+            this.x = x;
+            this.y = y;
+            this.width = 10;
+            this.height = 3;
+            this.speed = 3;
+            this.markedForDeletion = false;
+        }
+        update(){
+            this.x += this.speed;
+            // If the x coordinate of the projectile is more than 80% of the width of the game, then it becomes true
+            // 80% (0.8) because the player takes some space and we don't want enemies to be hit and destroyed off screen 
+            if(this.x > this.game.width * 0.8) this.markedForDeletion = true;
+        }
+        draw(context){
+            context.fillStyle= 'yellow';
+            context.fillRect(this.x, this.y, this.width, this.height);
+        }
     }
     // Handle falling screws and bolts (from damaged enemies)
     class Particle {
@@ -57,6 +75,7 @@ window.addEventListener('load', function(){
             this.y = 100;
             this.speedY = 0;
             this.maxSpeed = 3;
+            this.projectiles = [];
         }
         // method to move player around
         update(){
@@ -64,11 +83,32 @@ window.addEventListener('load', function(){
             else if(this.game.keys.includes('ArrowDown')) this.speedY = this.maxSpeed;
             else this.speedY = 0;
             this.y += this.speedY;
+            // Handle projectiles
+            this.projectiles.forEach(projectile => {
+                projectile.update();
+            });
+            // Filters the array of projectiles and only keep those with a false value for "markedForDeletion"
+            // "this.projectiles =" means we overwrite on the existing array
+            this.projectiles = this.projectiles.filter(projectile => !projectile.markedForDeletion);
         }
 
         // draw graphics representing the player
         draw(context) {
+            context.fillStyle = 'black';
             context.fillRect(this.x, this.y, this.width, this.height);
+            //Handle projectiles
+            this.projectiles.forEach(projectile => {
+                projectile.draw(context);
+            });
+        }
+
+        shootTop(){
+            // If we have ammo (> 0), we can shoot and everytime we shoot, we decrease the amount of ammo by 1
+            if(this.game.ammo > 0) {
+                this.projectiles.push(new Projectile(this.game, this.x + 80, this.y + 30));
+                this.game.ammo--;
+                console.log(this.game.ammo);
+            }
         }
     }
     // Handle different enemy types
@@ -96,6 +136,7 @@ window.addEventListener('load', function(){
             this.player = new Player(this);
             this.input = new InputHandler(this);
             this.keys = [];
+            this.ammo = 20;
         }
         update(){
             this.player.update();
