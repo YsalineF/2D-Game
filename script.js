@@ -181,6 +181,24 @@ window.addEventListener('load', function(){
                 //x = 5 (+ 20px left margin), y = 50, width = 3, height = 20
                 context.fillRect(20 + 5 * i, 50, 3, 20);
             }
+
+            //game over messages
+            if(this.game.gameOver){
+                context.textAlign = 'center';
+                let message1;
+                let message2;
+                if(this.game.score > this.game.winningScore) {
+                    message1 = 'You Win!';
+                    message2 = 'Well done!'
+                } else {
+                    message1 = 'You lose!';
+                    message2 = 'Try again next time!';
+                }
+                context.font = '50px ' + this.fontFamily;
+                context.fillText(message1, this.game.width * 0.5, this.game.height * 0.5 - 40);
+                context.font = '25px ' + this.fontFamily;
+                context.fillText(message2, this.game.width * 0.5, this.game.height * 0.5 + 40);
+            }
             context.restore();
         }
     }
