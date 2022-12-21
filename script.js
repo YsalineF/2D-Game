@@ -125,7 +125,20 @@ window.addEventListener('load', function(){
     }
     // Draw score, timer and other information that needs to be displayed for the user
     class UI {
-
+        constructor(game) {
+            this.game = game;
+            this.fontSize = 25;
+            this.fontFamily = 'Helvetica';
+            this.color = 'yellow';
+        }
+        draw(context){
+            //ammo => we can see the ammo recharging on the canvas and it will recharge until it hits maxAmmo
+            context.fillStyle = this.color;
+            for(let i = 0; i < this.game.ammo; i++){
+                //x = 5 (+ 20px left margin), y = 50, width = 3, height = 20
+                context.fillRect(20 + 5 * i, 50, 3, 20);
+            }
+        }
     }
     // Handle the entire game
     class Game {
@@ -135,6 +148,7 @@ window.addEventListener('load', function(){
             // new Player(this) ==> this refer to the class Game
             this.player = new Player(this);
             this.input = new InputHandler(this);
+            this.UI = new UI(this);
             this.keys = [];
             this.ammo = 20;
             this.maxAmmo = 50;
@@ -151,8 +165,10 @@ window.addEventListener('load', function(){
             }
         }
         draw(context){
-            // Render the player on the canvas by calling the draw method from line 40
+            // Render the player on the canvas by calling the draw method from line 96 (from the player class)
             this.player.draw(context);
+            // Render the UI on the canvas by calling the draw method from line 134 (from the UI class)
+            this.UI.draw(context);
         }
     }
 
