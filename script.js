@@ -149,11 +149,45 @@ window.addEventListener('load', function(){
 
     // Handle individual background layers
     class Layer {
-
+        constructor(game, image, speedModifier) {
+            this.game = game;
+            this.image = image;
+            this.speedModifier = speedModifier;
+            this.width = 1768;
+            this.height = 500;
+            this.x = 0;
+            this.y = 0;
+        }
+        update(){
+            if(this.x <= -this.width) this.x = 0;
+            this.x -= this.game.speed * this.speedModifier;
+        }
+        draw(context){
+            context.drawImage(this.image, this.x, this.y);
+            // So we don't have an empty background, a copy fill the space while the first background reload
+            context.drawImage(this.image, this.x + this.width, this.y);
+        }
     }
     // Animate the entire game's world
     class Background {
-
+        constructor(game) {
+            this.game = game;
+            this.image1 = document.getElementById('layer1');
+            this.image2 = document.getElementById('layer2');
+            this.image3 = document.getElementById('layer3');
+            this.image4 = document.getElementById('layer4');
+            this.layer1 = new Layer(this.game, this.image1, 0.2);
+            this.layer2 = new Layer(this.game, this.image2, 0.4);
+            this.layer3 = new Layer(this.game, this.image3, 1);
+            this.layer4 = new Layer(this.game, this.image4, 1.5);
+            this.layers = [this.layer1, this.layer2, this.layer3];
+        }
+        update(){
+            this.layers.forEach(layer => layer.update());
+        }
+        draw(context){
+            this.layers.forEach(layer => layer.draw(context));
+        }
     }
     // Draw score, timer and other information that needs to be displayed for the user
     class UI {
@@ -209,6 +243,7 @@ window.addEventListener('load', function(){
         constructor(width, height){
             this.width = width;
             this.height = height;
+            this.Background = new Background(this);
             // new Player(this) ==> this refer to the class Game
             this.player = new Player(this);
             this.input = new InputHandler(this);
@@ -226,10 +261,13 @@ window.addEventListener('load', function(){
             this.winningScore = 10;
             this.gameTime = 0;
             this.timeLimit = 5000;
+            this.speed = 1;
         }
         update(deltaTime){
             if(!this.gameOver) this.gameTime += deltaTime;
             if(this.gameTime > this.timeLimit) this.gameOver = true;
+            this.Background.update();
+            this.Background.layer4.update();
             this.player.update();
             if(this.ammoTimer > this.ammoInterval) {
                 if(this.ammo < this.maxAmmo) this.ammo++;
@@ -263,13 +301,17 @@ window.addEventListener('load', function(){
             }
         }
         draw(context){
+            // Render the background before the player to make sure the background is behind the player
+            // Render the background on the canvas by calling the draw method from line 180 (from the background class)
+            this.Background.draw(context);
             // Render the player on the canvas by calling the draw method from line 96 (from the player class)
             this.player.draw(context);
             // Render the UI on the canvas by calling the draw method from line 134 (from the UI class)
             this.UI.draw(context);
             this.enemies.forEach(enemy => {
                 enemy.draw(context);
-            })
+            });
+            this.Background.layer4.draw(context);
         }
         // Create new enemies
         addEnemy(){
