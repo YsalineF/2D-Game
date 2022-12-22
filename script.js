@@ -73,9 +73,13 @@ window.addEventListener('load', function(){
             this.x = 20;
             // player's y position
             this.y = 100;
+            this.frameX = 0;
+            this.frameY = 0;
+            this.maxFrame = 37;
             this.speedY = 0;
             this.maxSpeed = 3;
             this.projectiles = [];
+            this.image = document.getElementById('player');
         }
         // method to move player around
         update(){
@@ -90,12 +94,20 @@ window.addEventListener('load', function(){
             // Filters the array of projectiles and only keep those with a false value for "markedForDeletion"
             // "this.projectiles =" means we overwrite on the existing array
             this.projectiles = this.projectiles.filter(projectile => !projectile.markedForDeletion);
+            // Sprite animation
+            if(this.frameX < this.maxFrame) {
+                this.frameX++;
+            } else {
+                this.frameX = 0;
+            }
         }
 
         // draw graphics representing the player
         draw(context) {
             context.fillStyle = 'black';
             context.fillRect(this.x, this.y, this.width, this.height);
+            // this.frameX * this.width, this.frameY * this.height, this.width, this.height => we select the part of the image we want
+            context.drawImage(this.image, this.frameX * this.width, this.frameY * this.height, this.width, this.height,this.x, this.y, this.width, this.height);
             //Handle projectiles
             this.projectiles.forEach(projectile => {
                 projectile.draw(context);
