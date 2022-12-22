@@ -20,6 +20,8 @@ window.addEventListener('load', function(){
                     this.game.keys.push(e.key);
                 } else if (e.key === " ") {
                     this.game.player.shootTop();
+                } else if (e.key === 'd') {
+                    this.game.debug = !this.game.debug;
                 }
             });
             // When we release the key
@@ -104,8 +106,7 @@ window.addEventListener('load', function(){
 
         // draw graphics representing the player
         draw(context) {
-            context.fillStyle = 'black';
-            context.fillRect(this.x, this.y, this.width, this.height);
+            if(this.game.debug) context.strokeRect(this.x, this.y, this.width, this.height);
             // this.frameX * this.width, this.frameY * this.height, this.width, this.height => we select the part of the image we want
             context.drawImage(this.image, this.frameX * this.width, this.frameY * this.height, this.width, this.height,this.x, this.y, this.width, this.height);
             //Handle projectiles
@@ -274,6 +275,7 @@ window.addEventListener('load', function(){
             this.gameTime = 0;
             this.timeLimit = 5000;
             this.speed = 1;
+            this.debug = true;
         }
         update(deltaTime){
             if(!this.gameOver) this.gameTime += deltaTime;
