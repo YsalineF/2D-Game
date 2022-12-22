@@ -132,8 +132,6 @@ window.addEventListener('load', function(){
             this.x = this.game.width;
             this.speedX = Math.random() * -1.5 - 0.5;
             this.markedForDeletion = false;
-            this.lives = 5;
-            this.score = this.lives;
             this.frameX = 0;
             this.frameY = 0;
             this.maxFrame = 37;
@@ -164,8 +162,25 @@ window.addEventListener('load', function(){
             this.height = 169;
             this.y = Math.random() * (this.game.height * 0.9 - this.height);
             this.image = document.getElementById('angler1');
-            // Randomly choose a number between 1 and 3 bc we have 3 different animations
+            // Randomly choose a number between 0 and 2 bc we have 3 different animations
             this.frameY = Math.floor(Math.random() * 3);
+            this.lives = 2;
+            this.score = this.lives;
+        }
+    }
+    // Child class (sub)
+    class Angler2 extends Enemy {
+        constructor(game) {
+            // Refer to the parent constructor (super = parent)
+            super(game);
+            this.width = 213;
+            this.height = 165;
+            this.y = Math.random() * (this.game.height * 0.9 - this.height);
+            this.image = document.getElementById('angler2');
+            // Randomly choose a number between 0 and 1 bc we have 2 different animations
+            this.frameY = Math.floor(Math.random() * 2);
+            this.lives = 3;
+            this.score = this.lives;
         }
     }
 
@@ -282,7 +297,7 @@ window.addEventListener('load', function(){
             this.score = 0;
             this.winningScore = 10;
             this.gameTime = 0;
-            this.timeLimit = 5000;
+            this.timeLimit = 15000;
             this.speed = 1;
             this.debug = true;
         }
@@ -338,7 +353,11 @@ window.addEventListener('load', function(){
         }
         // Create new enemies
         addEnemy(){
-            this.enemies.push(new Angler1(this));
+            // Math.random() generates a number between 0 and 1
+            const randomize = Math.random();
+            if(randomize < 0.5) this.enemies.push(new Angler1(this));
+            else this.enemies.push(new Angler2(this));
+            console.log(this.enemies);
         }
 
         checkCollision(rect1, rect2){
