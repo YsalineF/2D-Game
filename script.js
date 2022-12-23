@@ -82,9 +82,12 @@ window.addEventListener('load', function(){
             this.maxSpeed = 3;
             this.projectiles = [];
             this.image = document.getElementById('player');
+            this.powerUp = false;
+            this.powerUpTimer = 0;
+            this.powerUpLimit = 10000;
         }
         // method to move player around
-        update(){
+        update(deltaTime){
             if(this.game.keys.includes('ArrowUp')) this.speedY = -this.maxSpeed;
             else if(this.game.keys.includes('ArrowDown')) this.speedY = this.maxSpeed;
             else this.speedY = 0;
@@ -102,19 +105,31 @@ window.addEventListener('load', function(){
             } else {
                 this.frameX = 0;
             }
+            //power up
+            if(this.powerUp) {
+                if(this.powerUpTimer > this.powerUpLimit) {
+                    this.powerUpTimer = 0;
+                    this.powerUp = false;
+                    this.frameY = 0;
+                } else {
+                    this.powerUpTimer += deltaTime;
+                    this.frameY = 1;
+                    this.game.ammo += 0.1;
+                }
+            }
         }
 
         // draw graphics representing the player
         draw(context) {
-            if(this.game.debug) context.strokeRect(this.x, this.y, this.width, this.height);
-            // this.frameX * this.width, this.frameY * this.height, this.width, this.height => we select the part of the image we want
-            context.drawImage(this.image, this.frameX * this.width, this.frameY * this.height, this.width, this.height,this.x, this.y, this.width, this.height);
             //Handle projectiles
             this.projectiles.forEach(projectile => {
                 projectile.draw(context);
             });
+            if(this.game.debug) context.strokeRect(this.x, this.y, this.width, this.height);
+            // this.frameX * this.width, this.frameY * this.height, this.width, this.height => we select the part of the image we want
+            context.drawImage(this.image, this.frameX * this.width, this.frameY * this.height, this.width, this.height,this.x, this.y, this.width, this.height);
         }
-
+        // Shoot from the mouth
         shootTop(){
             // If we have ammo (> 0), we can shoot and everytime we shoot, we decrease the amount of ammo by 1
             if(this.game.ammo > 0) {
@@ -122,6 +137,20 @@ window.addEventListener('load', function(){
                 this.game.ammo--;
                 //console.log(this.game.ammo);
             }
+            if(this.powerUp) this.shootBottom();
+        }
+        // Shoot from the tail
+        shootBottom(){
+            if(this.game.ammo > 0) {
+                this.projectiles.push(new Projectile(this.game, this.x + 80, this.y + 175));
+                this.game.ammo--;
+                //console.log(this.game.ammo);
+            }
+        }
+        enterPowerUp() {
+            this.powerUpTimer = 0;
+            this.powerUp = true;
+            this.game.ammo = this.game.maxAmmo;
         }
     }
     // Handle different enemy types
@@ -262,12 +291,6 @@ window.addEventListener('load', function(){
             // score
             context.fillText('Score : ' + this.game.score, 20, 40);
             
-            //ammo 
-                // => we can see the ammo recharging on the canvas and it will recharge until it hits maxAmmo
-            for(let i = 0; i < this.game.ammo; i++){
-                //x = 5 (+ 20px left margin), y = 50, width = 3, height = 20
-                context.fillRect(20 + 5 * i, 50, 3, 20);
-            }
             //timer
             const formattedTime = (this.game.gameTime * 0.001).toFixed(1);
             context.fillText('Timer : ' + formattedTime, 20, 100);
@@ -288,6 +311,13 @@ window.addEventListener('load', function(){
                 context.font = '25px ' + this.fontFamily;
                 context.fillText(message2, this.game.width * 0.5, this.game.height * 0.5 + 40);
             }
+            //ammo 
+                // => we can see the ammo recharging on the canvas and it will recharge until it hits maxAmmo
+                if(this.game.player.powerUp) context.fillStyle = '#ffffbd';
+                for(let i = 0; i < this.game.ammo; i++){
+                    //x = 5 (+ 20px left margin), y = 50, width = 3, height = 20
+                    context.fillRect(20 + 5 * i, 50, 3, 20);
+                }
             context.restore();
         }
     }
@@ -322,7 +352,7 @@ window.addEventListener('load', function(){
             if(this.gameTime > this.timeLimit) this.gameOver = true;
             this.Background.update();
             this.Background.layer4.update();
-            this.player.update();
+            this.player.update(deltaTime);
             if(this.ammoTimer > this.ammoInterval) {
                 if(this.ammo < this.maxAmmo) this.ammo++;
                 this.ammoTimer = 0;
@@ -333,6 +363,8 @@ window.addEventListener('load', function(){
                 enemy.update();
                 if(this.checkCollision(this.player, enemy)) {
                     enemy.markedForDeletion = true;
+                    if(enemy.type = 'lucky') this.player.enterPowerUp();
+                    else this.score--;
                 }
                 this.player.projectiles.forEach(projectile => {
                     if(this.checkCollision(projectile, enemy)){
